@@ -43,7 +43,7 @@ jobs:
       run: npm run package
 
     - name: Create manifest
-      run: npm run manifest
+      run: chmod +x tools/gen-manifest.js && node tools/gen-manifest.js io.github.yalnie.applicationlauncher.manifest.json
 
     - name: Upload IPK
       uses: actions/upload-artifact@v4
