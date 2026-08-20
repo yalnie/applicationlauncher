@@ -1,9 +1,6 @@
-var
-  kind = require('enyo/kind'),
-  Panels = require('moonstone/Panels'),
-  IconButton = require('moonstone/IconButton'),
-  BrowserPanel = require('./BrowserPanel.js'),
-  SettingsPanel = require('./SettingsPanel.js');
+var kind = require('enyo/kind'),
+    Panels = require('moonstone/Panels'),
+    BrowserPanel = require('./BrowserPanel.js');
 
 module.exports = kind({
   name: 'myapp.MainView',
@@ -11,6 +8,7 @@ module.exports = kind({
   components: [
     {
       kind: Panels,
+      name: 'panels',
       pattern: 'activity',
       hasCloseButton: false,
       wrap: true,
@@ -23,49 +21,26 @@ module.exports = kind({
       onTransitionFinish: 'transitionFinish',
     }
   ],
+  
   create: function () {
     this.inherited(arguments);
-    document.title = 'Homebrew Channel';
+    document.title = 'Installed Applications';
 
     try {
       if (window.PalmSystem) {
-        document.addEventListener('webOSRelaunch', (function(data) {
-          this.processLaunchParams(data.detail);
-        }).bind(this));
-        this.processLaunchParams(JSON.parse(window.PalmSystem.launchParams));
-      } else {
-        var launchParams = JSON.parse(decodeURIComponent(location.hash.substring(1)));
-        if (typeof launchParams === 'object') {
-          this.processLaunchParams(launchParams);
-        }
+        document.addEventListener('webOSRelaunch', function(data) {
+          // App brought back to the foreground.
+          // No launch params to process for a basic launcher.
+        });
       }
     } catch (err) {
       console.warn('Process launch params failed:', err);
     }
   },
-  processLaunchParams: function (params) {
-    console.info('parsing params:', params);
-    if (typeof params === 'object' && params.launchMode === 'addRepository') {
-      console.info('panels:', this.$.panels);
 
-      var self = this;
-      setTimeout(function () {
-        self.requestPushPanel(null, {
-          panel: {
-            kind: SettingsPanel,
-            templateAddRepository: params.url,
-          }
-        });
-      }, 500);
-    }
-  },
-  handlers: {
-    onRequestPushPanel: 'requestPushPanel',
-  },
   transitionFinish: function (evt, sender) {
-    document.title = this.$.panels.getActive().title;
-  },
-  requestPushPanel: function (sender, ev) {
-    this.$.panels.pushPanel(ev.panel);
-  },
+    if (this.$.panels.getActive()) {
+        document.title = this.$.panels.getActive().title || 'Activity Launcher';
+    }
+  }
 });

@@ -7,7 +7,7 @@
   </defs>
   
   <!-- background -->
-  <rect width="100%" height="100%" fill="#607C89" />
+  <rect width="100%" height="100%" fill="#4F6671" />
   
   <g transform="translate(560, 280)" filter="url(#icon-shadow)">
     

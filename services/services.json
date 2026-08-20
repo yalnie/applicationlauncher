@@ -1,9 +1,9 @@
 {
-    "id": "org.webosbrew.hbchannel.service",
-    "description": "Homebrew Channel Service",
+    "id": "io.github.yalnie.applicationlauncher.service",
+    "description": "Application Launcher Service",
     "services": [
         {
-            "name": "org.webosbrew.hbchannel.service"
+            "name": "io.github.yalnie.applicationlauncher.service"
         }
     ]
 }

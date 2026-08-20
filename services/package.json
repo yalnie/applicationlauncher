@@ -1,4 +1,4 @@
 {
-    "name": "org.webosbrew.hbchannel.service",
+    "name": "io.github.yalnie.applicationlauncher.service",
     "main": "service.js"
 }

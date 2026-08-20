@@ -1,20 +1,13 @@
 const path = require('path');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const ShebangPlugin = require('webpack-shebang-plugin');
 
 module.exports = (env) => [
   {
     target: 'node0.10',
     mode: env.production ? 'production' : 'development',
-
-    // Builds with devtool support (development) contain very big eval chunks,
-    // which seem to cause segfaults (at least) on nodeJS v0.12.2 used on webOS 3.x.
-    // This feature makes sense only when using recent enough chrome-based
-    // node inspector anyway.
     devtool: false,
 
     entry: {
-      'elevate-service': './services/elevate-service.ts',
       'service.js': './services/service.ts',
     },
     output: {
@@ -42,15 +35,6 @@ module.exports = (env) => [
       ],
     },
     plugins: [
-      new ForkTsCheckerWebpackPlugin({
-        typescript: {
-          diagnosticOptions: {
-            semantic: true,
-            syntactic: true,
-          },
-          mode: 'write-references',
-        },
-      }),
       new ShebangPlugin({
         chmod: 0o755,
       }),

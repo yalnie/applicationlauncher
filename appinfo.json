@@ -1,13 +1,15 @@
 {
-    "id": "org.webosbrew.hbchannel",
-    "version": "0.7.3",
-    "vendor": "webosbrew.org",
-    "title": "Homebrew Channel",
+    "id": "io.github.yalnie.applicationlauncher",
+    "version": "1.0.0",
+    "vendor": "yalnie",
+    "title": "Activity Launcher",
     "icon": "assets/icon80.png",
+    "mediumLargeIcon": "assets/icon115.png",
     "largeIcon": "assets/icon130.png",
+    "extraLargeIcon": "assets/icon192.png",
+    "bgImage": "assets/preview.png",
     "splashBackground": "assets/splash.png",
     "main": "index.html",
-    "iconColor": "#cf0652",
-    "type": "web",
-    "appDescription": "webOS Homebrew installer"
+    "iconColor": "#607C89",
+    "type": "web"
 }
