@@ -10,6 +10,8 @@ var kind = require('enyo/kind'),
     Spinner = require('moonstone/Spinner'),
     Button = require('moonstone/Button'),
     RadioItemGroup = require('moonstone/RadioItemGroup'),
+    ContextualPopupDecorator = require('moonstone/ContextualPopupDecorator'),
+    ContextualPopup = require('moonstone/ContextualPopup'),
     LunaService = require('enyo-webos/LunaService');
 
 var AppModel = kind({
@@ -48,31 +50,30 @@ module.exports = kind({
     
     headerComponents: [
         {
-            kind: Button,
-            name: 'filterBtn',
-            content: 'Filter: Loading...',
-            ontap: 'showFilterPopup',
-            style: 'min-width: 400px;'
+            kind: ContextualPopupDecorator,
+            components: [
+                {
+                    kind: Button,
+                    content: 'Filter'
+                },
+                {
+                    kind: ContextualPopup,
+                    name: 'filterPopup',
+                    classes: 'moon-3h',
+                    components: [
+                        {
+                            kind: RadioItemGroup,
+                            name: 'filterGroup',
+                            onChange: 'onFilterChange',
+                            components: []
+                        }
+                    ]
+                }
+            ]
         }
     ],
 
     components: [
-        {
-            kind: Popup, 
-            name: 'filterPopup', 
-            autoDismiss: true, 
-            allowBackKey: true,
-            style: 'min-width: 450px;',
-            components: [
-                {content: 'Filter', classes: 'moon-header-font', style: 'margin-bottom: 20px; text-align: center;'},
-                {
-                    kind: RadioItemGroup,
-                    name: 'filterGroup',
-                    onChange: 'onFilterChange',
-                    components: []
-                }
-            ]
-        },
         {
             kind: Spinner, 
             name: 'loadingSpinner', 
@@ -133,10 +134,6 @@ module.exports = kind({
         this.$.listAppsService.send({});
     },
 
-    showFilterPopup: function () {
-        this.$.filterPopup.show();
-    },
-
     buildFilterMenu: function(counts) {
         this.$.filterGroup.destroyClientControls();
         
@@ -157,24 +154,14 @@ module.exports = kind({
 
         this.$.filterGroup.createComponents(items, {owner: this});
         this.$.filterGroup.render();
-        
-        var activeItem = null;
-        for (var i = 0; i < items.length; i++) {
-            if (items[i].active) { activeItem = items[i]; break; }
-        }
-        if (activeItem) {
-            this.$.filterBtn.setContent("Filter: " + activeItem.content);
-        }
     },
 
     onFilterChange: function(sender, ev) {
         if (ev && ev.originator && ev.originator.active) {
             var selectedValue = ev.originator.value;
-            var selectedContent = ev.originator.content;
             
             if (selectedValue && this.currentFilter !== selectedValue) {
                 this.currentFilter = selectedValue;
-                this.$.filterBtn.setContent("Filter: " + selectedContent);
                 this.applyFilter();
                 this.$.filterPopup.hide();
             }
