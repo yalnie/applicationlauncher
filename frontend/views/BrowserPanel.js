@@ -26,10 +26,16 @@ var AppListItem = kind({
     classes: 'moon-gridlist-imageitem horizontal-gridList-item horizontal-gridList-image-item',
     components: [
         {
-            kind: MoonImage,
-            name: 'img',
-            style: 'width: 4.25rem; height: 4.25rem; float: left; padding-right: 1rem; padding-top: 0.25rem',
-            sizing: 'contain',
+            name: 'iconWrapper',
+            style: 'width: 4.25rem; height: 4.25rem; float: left; margin-right: 1rem; margin-top: 0.25rem; border-radius: 8px;',
+            components: [
+                {
+                    kind: MoonImage,
+                    name: 'img',
+                    style: 'width: 100%; height: 100%;',
+                    sizing: 'contain'
+                }
+            ]
         },
         {name: 'caption', classes: 'caption', kind: Marquee.Text},
         {name: 'subCaption', classes: 'sub-caption', kind: Marquee.Text},
@@ -38,6 +44,10 @@ var AppListItem = kind({
         {from: 'model.title', to: '$.caption.content'},
         {from: 'model.id', to: '$.subCaption.content'},
         {from: 'model.icon', to: '$.img.src'},
+        {from: 'model.iconColor', to: '$.iconWrapper.style', transform: function(color) {
+            var baseStyle = 'width: 4.25rem; height: 4.25rem; float: left; margin-right: 1rem; margin-top: 0.25rem; border-radius: 8px; ';
+            return color ? baseStyle + 'background-color: ' + color + ';' : baseStyle + 'background-color: transparent;';
+        }}
     ]
 });
 
@@ -66,7 +76,7 @@ module.exports = kind({
                         {
                             kind: RadioItemGroup,
                             name: 'filterGroup',
-                            onChange: 'onFilterChange',
+                            onActivate: 'onFilterChange',
                             components: []
                         }
                     ]
@@ -159,15 +169,12 @@ module.exports = kind({
     },
 
     onFilterChange: function(sender, ev) {
-        var activeItem = sender.getActive();
-        if (activeItem) {
-            var selectedValue = activeItem.value;
+        if (ev && ev.originator && ev.originator.active) {
+            var selectedValue = ev.originator.value;
             
-            if (selectedValue) {
-                if (this.currentFilter !== selectedValue) {
-                    this.currentFilter = selectedValue;
-                    this.applyFilter();
-                }
+            if (selectedValue && this.currentFilter !== selectedValue) {
+                this.currentFilter = selectedValue;
+                this.applyFilter();
                 this.$.filterPopup.hide();
             }
         }
@@ -213,13 +220,11 @@ module.exports = kind({
                     } else if (path.indexOf('cryptofs/apps') !== -1) {
                         cat = 'installed';
                     } else if (app.systemApp === true || path.indexOf('/usr/palm/') !== -1 || path.indexOf('/media/system/') !== -1) {
-                        
                         if (app.visible === false) {
                             cat = 'hidden';
                         } else {
                             cat = 'system';
                         }
-                        
                     } else if (app.visible === false) {
                          cat = 'hidden';
                     }
