@@ -48,8 +48,7 @@ var AppListItem = kind({
 module.exports = kind({
     name: 'BrowserPanel', 
     kind: Panel,
-    title: 'Installed Applications',
-    titleBelow: 'Local apps on this TV',
+    title: 'Application Launcher',
     headerType: 'medium',
     
     headerComponents: [
