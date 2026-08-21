@@ -26,16 +26,10 @@ var AppListItem = kind({
     classes: 'moon-gridlist-imageitem horizontal-gridList-item horizontal-gridList-image-item',
     components: [
         {
-            name: 'iconWrapper',
-            style: 'width: 4.25rem; height: 4.25rem; float: left; margin-right: 1rem; margin-top: 0.25rem; border-radius: 8px;',
-            components: [
-                {
-                    kind: MoonImage,
-                    name: 'img',
-                    style: 'width: 100%; height: 100%;',
-                    sizing: 'contain'
-                }
-            ]
+            kind: MoonImage,
+            name: 'img',
+            style: 'width: 4.25rem; height: 4.25rem; float: left; margin-right: 1rem; margin-top: 0.25rem;',
+            sizing: 'contain'
         },
         {name: 'caption', classes: 'caption', kind: Marquee.Text},
         {name: 'subCaption', classes: 'sub-caption', kind: Marquee.Text},
@@ -44,8 +38,8 @@ var AppListItem = kind({
         {from: 'model.title', to: '$.caption.content'},
         {from: 'model.id', to: '$.subCaption.content'},
         {from: 'model.icon', to: '$.img.src'},
-        {from: 'model.iconColor', to: '$.iconWrapper.style', transform: function(color) {
-            var baseStyle = 'width: 4.25rem; height: 4.25rem; float: left; margin-right: 1rem; margin-top: 0.25rem; border-radius: 8px; ';
+        {from: 'model.iconColor', to: '$.img.style', transform: function(color) {
+            var baseStyle = 'width: 4.25rem; height: 4.25rem; float: left; margin-right: 1rem; margin-top: 0.25rem; ';
             return color ? baseStyle + 'background-color: ' + color + ';' : baseStyle + 'background-color: transparent;';
         }}
     ]
@@ -150,22 +144,28 @@ module.exports = kind({
         this.$.filterGroup.destroyClientControls();
         
         var items = [
-            {content: 'All Apps (' + this.rawApps.length + ')', value: 'all', active: (this.currentFilter === 'all')}
+            {content: 'All Apps (' + this.rawApps.length + ')', value: 'all'}
         ];
         
-        if (counts.installed > 0) items.push({content: 'Installed Apps (' + counts.installed + ')', value: 'installed', active: (this.currentFilter === 'installed')});
-        if (counts.system > 0) items.push({content: 'System Apps (' + counts.system + ')', value: 'system', active: (this.currentFilter === 'system')});
-        if (counts.hidden > 0) items.push({content: 'Hidden Apps (' + counts.hidden + ')', value: 'hidden', active: (this.currentFilter === 'hidden')});
-        if (counts.dev > 0) items.push({content: 'Developer Apps (' + counts.dev + ')', value: 'dev', active: (this.currentFilter === 'dev')});
+        if (counts.installed > 0) items.push({content: 'Installed Apps (' + counts.installed + ')', value: 'installed'});
+        if (counts.system > 0) items.push({content: 'System Apps (' + counts.system + ')', value: 'system'});
+        if (counts.hidden > 0) items.push({content: 'Hidden Apps (' + counts.hidden + ')', value: 'hidden'});
+        if (counts.dev > 0) items.push({content: 'Developer Apps (' + counts.dev + ')', value: 'dev'});
         
         var valid = items.some(function(item) { return item.value === this.currentFilter; }.bind(this));
         if (!valid) {
             this.currentFilter = 'all';
-            items[0].active = true;
         }
 
-        this.$.filterGroup.createComponents(items, {owner: this});
+        var controls = this.$.filterGroup.createComponents(items, {owner: this});
         this.$.filterGroup.render();
+
+        for (var i = 0; i < controls.length; i++) {
+            if (controls[i].value === this.currentFilter) {
+                this.$.filterGroup.setActive(controls[i]);
+                break;
+            }
+        }
     },
 
     onFilterChange: function(sender, ev) {
