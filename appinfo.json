@@ -2,7 +2,7 @@
     "id": "io.github.yalnie.applicationlauncher",
     "version": "1.0.0",
     "vendor": "yalnie",
-    "title": "Activity Launcher",
+    "title": "Application Launcher",
     "icon": "assets/icon80.png",
     "mediumLargeIcon": "assets/icon115.png",
     "largeIcon": "assets/icon130.png",
