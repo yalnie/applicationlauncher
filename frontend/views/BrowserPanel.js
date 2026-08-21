@@ -49,7 +49,7 @@ module.exports = kind({
             name: 'loadingSpinner', 
             content: 'Loading...', 
             center: true, 
-            showing: truei
+            showing: true
         },
         {
             kind: Popup, 
