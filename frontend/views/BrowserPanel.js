@@ -8,7 +8,8 @@ var kind = require('enyo/kind'),
     Marquee = require('moonstone/Marquee'),
     Popup = require('moonstone/Popup'),
     Spinner = require('moonstone/Spinner'),
-    ExpandablePicker = require('moonstone/ExpandablePicker'),
+    Button = require('moonstone/Button'),
+    RadioItemGroup = require('moonstone/RadioItemGroup'),
     LunaService = require('enyo-webos/LunaService');
 
 var AppModel = kind({
@@ -47,16 +48,31 @@ module.exports = kind({
     
     headerComponents: [
         {
-            kind: ExpandablePicker,
-            name: 'filterPicker',
+            kind: Button,
+            name: 'filterBtn',
             content: 'Filter: Loading...',
-            onChange: 'onFilterChange',
-            autoCollapse: true,
-            components: []
+            ontap: 'showFilterPopup',
+            style: 'min-width: 400px;'
         }
     ],
 
     components: [
+        {
+            kind: Popup, 
+            name: 'filterPopup', 
+            autoDismiss: true, 
+            allowBackKey: true,
+            style: 'min-width: 450px;',
+            components: [
+                {content: 'Filter', classes: 'moon-header-font', style: 'margin-bottom: 20px; text-align: center;'},
+                {
+                    kind: RadioItemGroup,
+                    name: 'filterGroup',
+                    onChange: 'onFilterChange',
+                    components: []
+                }
+            ]
+        },
         {
             kind: Spinner, 
             name: 'loadingSpinner', 
@@ -117,8 +133,12 @@ module.exports = kind({
         this.$.listAppsService.send({});
     },
 
+    showFilterPopup: function () {
+        this.$.filterPopup.show();
+    },
+
     buildFilterMenu: function(counts) {
-        this.$.filterPicker.destroyClientControls();
+        this.$.filterGroup.destroyClientControls();
         
         var items = [
             {content: 'All Apps (' + this.rawApps.length + ')', value: 'all', active: (this.currentFilter === 'all')}
@@ -135,27 +155,28 @@ module.exports = kind({
             items[0].active = true;
         }
 
-        this.$.filterPicker.createComponents(items, {owner: this});
-        this.$.filterPicker.render();
+        this.$.filterGroup.createComponents(items, {owner: this});
+        this.$.filterGroup.render();
         
         var activeItem = null;
         for (var i = 0; i < items.length; i++) {
             if (items[i].active) { activeItem = items[i]; break; }
         }
         if (activeItem) {
-            this.$.filterPicker.setContent("Filter: " + activeItem.content);
+            this.$.filterBtn.setContent("Filter: " + activeItem.content);
         }
     },
 
     onFilterChange: function(sender, ev) {
-        if (ev && ev.selected) {
-            var selectedValue = ev.selected.value;
-            var selectedContent = ev.selected.content;
+        if (ev && ev.originator && ev.originator.active) {
+            var selectedValue = ev.originator.value;
+            var selectedContent = ev.originator.content;
             
             if (selectedValue && this.currentFilter !== selectedValue) {
                 this.currentFilter = selectedValue;
-                this.$.filterPicker.setContent("Filter: " + selectedContent);
+                this.$.filterBtn.setContent("Filter: " + selectedContent);
                 this.applyFilter();
+                this.$.filterPopup.hide();
             }
         }
     },
