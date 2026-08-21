@@ -24,7 +24,7 @@ module.exports = kind({
   
   create: function () {
     this.inherited(arguments);
-    document.title = 'Installed Applications';
+    document.title = '';
 
     try {
       if (window.PalmSystem) {
@@ -40,7 +40,7 @@ module.exports = kind({
 
   transitionFinish: function (evt, sender) {
     if (this.$.panels.getActive()) {
-        document.title = this.$.panels.getActive().title || 'Activity Launcher';
+        document.title = this.$.panels.getActive().title || 'Application Launcher';
     }
   }
 });
