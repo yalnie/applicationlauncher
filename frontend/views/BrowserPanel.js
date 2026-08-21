@@ -54,12 +54,14 @@ module.exports = kind({
             components: [
                 {
                     kind: Button,
-                    content: 'Filter'
+                    content: 'FILTER',
+                    style: 'border-radius: 9999px; min-width: 120px;'
                 },
                 {
                     kind: ContextualPopup,
                     name: 'filterPopup',
                     classes: 'moon-3h',
+                    style: 'width: 350px;',
                     components: [
                         {
                             kind: RadioItemGroup,
@@ -143,7 +145,7 @@ module.exports = kind({
         
         if (counts.installed > 0) items.push({content: 'Installed Apps (' + counts.installed + ')', value: 'installed', active: (this.currentFilter === 'installed')});
         if (counts.system > 0) items.push({content: 'System Apps (' + counts.system + ')', value: 'system', active: (this.currentFilter === 'system')});
-        if (counts.hidden > 0) items.push({content: 'Hidden System Apps (' + counts.hidden + ')', value: 'hidden', active: (this.currentFilter === 'hidden')});
+        if (counts.hidden > 0) items.push({content: 'Hidden Apps (' + counts.hidden + ')', value: 'hidden', active: (this.currentFilter === 'hidden')});
         if (counts.dev > 0) items.push({content: 'Developer Apps (' + counts.dev + ')', value: 'dev', active: (this.currentFilter === 'dev')});
         
         var valid = items.some(function(item) { return item.value === this.currentFilter; }.bind(this));
@@ -157,12 +159,15 @@ module.exports = kind({
     },
 
     onFilterChange: function(sender, ev) {
-        if (ev && ev.originator && ev.originator.active) {
-            var selectedValue = ev.originator.value;
+        var activeItem = sender.getActive();
+        if (activeItem) {
+            var selectedValue = activeItem.value;
             
-            if (selectedValue && this.currentFilter !== selectedValue) {
-                this.currentFilter = selectedValue;
-                this.applyFilter();
+            if (selectedValue) {
+                if (this.currentFilter !== selectedValue) {
+                    this.currentFilter = selectedValue;
+                    this.applyFilter();
+                }
                 this.$.filterPopup.hide();
             }
         }
@@ -208,11 +213,15 @@ module.exports = kind({
                     } else if (path.indexOf('cryptofs/apps') !== -1) {
                         cat = 'installed';
                     } else if (app.systemApp === true || path.indexOf('/usr/palm/') !== -1 || path.indexOf('/media/system/') !== -1) {
-                        if (app.visible === false || (app.class && app.class.hidden === true)) {
+                        
+                        if (app.visible === false) {
                             cat = 'hidden';
                         } else {
                             cat = 'system';
                         }
+                        
+                    } else if (app.visible === false) {
+                         cat = 'hidden';
                     }
                     
                     app.category = cat;
