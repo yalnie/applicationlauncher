@@ -57,7 +57,7 @@ module.exports = kind({
             components: [
                 {
                     kind: Button,
-                    content: 'FILTER',
+                    content: 'Filter',
                     style: 'border-radius: 9999px; min-width: 120px;'
                 },
                 {
