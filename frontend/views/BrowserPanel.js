@@ -8,6 +8,7 @@ var kind = require('enyo/kind'),
     Marquee = require('moonstone/Marquee'),
     Popup = require('moonstone/Popup'),
     Spinner = require('moonstone/Spinner'),
+    ExpandablePicker = require('moonstone/ExpandablePicker'),
     LunaService = require('enyo-webos/LunaService');
 
 var AppModel = kind({
@@ -43,6 +44,18 @@ module.exports = kind({
     title: 'Installed Applications',
     titleBelow: 'Local apps on this TV',
     headerType: 'medium',
+    
+    headerComponents: [
+        {
+            kind: ExpandablePicker,
+            name: 'filterPicker',
+            content: 'Filter: Loading...',
+            onChange: 'onFilterChange',
+            autoCollapse: true,
+            components: []
+        }
+    ],
+
     components: [
         {
             kind: Spinner, 
@@ -97,17 +110,76 @@ module.exports = kind({
     create: function () {
         this.inherited(arguments);
         this.set('installedApps', new Collection({model: AppModel}));
+        
+        this.rawApps = [];
+        this.currentFilter = 'all';
+        
         this.$.listAppsService.send({});
+    },
+
+    buildFilterMenu: function(counts) {
+        this.$.filterPicker.destroyClientControls();
+        
+        var items = [
+            {content: 'All Apps (' + this.rawApps.length + ')', value: 'all', active: (this.currentFilter === 'all')}
+        ];
+        
+        if (counts.installed > 0) items.push({content: 'Installed Apps (' + counts.installed + ')', value: 'installed', active: (this.currentFilter === 'installed')});
+        if (counts.system > 0) items.push({content: 'System Apps (' + counts.system + ')', value: 'system', active: (this.currentFilter === 'system')});
+        if (counts.hidden > 0) items.push({content: 'Hidden System Apps (' + counts.hidden + ')', value: 'hidden', active: (this.currentFilter === 'hidden')});
+        if (counts.dev > 0) items.push({content: 'Developer Apps (' + counts.dev + ')', value: 'dev', active: (this.currentFilter === 'dev')});
+        
+        var valid = items.some(function(item) { return item.value === this.currentFilter; }.bind(this));
+        if (!valid) {
+            this.currentFilter = 'all';
+            items[0].active = true;
+        }
+
+        this.$.filterPicker.createComponents(items, {owner: this});
+        this.$.filterPicker.render();
+        
+        var activeItem = null;
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].active) { activeItem = items[i]; break; }
+        }
+        if (activeItem) {
+            this.$.filterPicker.setContent("Filter: " + activeItem.content);
+        }
+    },
+
+    onFilterChange: function(sender, ev) {
+        if (ev && ev.selected) {
+            var selectedValue = ev.selected.value;
+            var selectedContent = ev.selected.content;
+            
+            if (selectedValue && this.currentFilter !== selectedValue) {
+                this.currentFilter = selectedValue;
+                this.$.filterPicker.setContent("Filter: " + selectedContent);
+                this.applyFilter();
+            }
+        }
+    },
+
+    applyFilter: function() {
+        if (!this.rawApps) return;
+        
+        var filtered = this.rawApps.filter(function(app) {
+            if (this.currentFilter === 'all') return true;
+            return app.category === this.currentFilter;
+        }.bind(this));
+        
+        this.installedApps.remove(this.installedApps.models); 
+        this.installedApps.add(filtered);
     },
 
     onListAppsResponse: function (sender, inResponse) {
         this.$.loadingSpinner.hide();
 
         if (inResponse && inResponse.apps) {
-            this.showPopup("Found " + inResponse.apps.length + " raw apps. Processing...");
-            
-            var processedApps = [];
+            this.rawApps = [];
+            var counts = { system: 0, hidden: 0, installed: 0, dev: 0 };
             var seenIds = {};            
+            
             inResponse.apps.forEach(function(app) {
                 if (app && app.id && !seenIds[app.id]) {
                     seenIds[app.id] = true; 
@@ -120,17 +192,29 @@ module.exports = kind({
                         app.title = app.id;
                     }
                     
-                    processedApps.push(app);
+                    var cat = 'installed';
+                    var path = app.folderPath || "";
+                    
+                    if (path.indexOf('developer/apps') !== -1) {
+                        cat = 'dev';
+                    } else if (path.indexOf('cryptofs/apps') !== -1) {
+                        cat = 'installed';
+                    } else if (app.systemApp === true || path.indexOf('/usr/palm/') !== -1 || path.indexOf('/media/system/') !== -1) {
+                        if (app.visible === false || (app.class && app.class.hidden === true)) {
+                            cat = 'hidden';
+                        } else {
+                            cat = 'system';
+                        }
+                    }
+                    
+                    app.category = cat;
+                    counts[cat]++;
+                    this.rawApps.push(app);
                 }
-            });
+            }.bind(this));
 
-            try {
-                this.installedApps.add(processedApps);
-                this.showPopup("Successfully loaded " + processedApps.length + " unique apps.");
-            } catch (err) {
-                console.error("UI Render Error:", err);
-                this.showPopup("Render error: " + err.message);
-            }
+            this.buildFilterMenu(counts);
+            this.applyFilter();
             
         } else {
             this.showPopup("Service responded, but no apps found in directories.");
@@ -153,7 +237,6 @@ module.exports = kind({
     },
 
     onLaunchResponse: function (sender, inResponse) {
-        // App launched successfully, no action needed.
     },
 
     onLaunchError: function (sender, inError) {
