@@ -7,6 +7,7 @@ var kind = require('enyo/kind'),
     MoonImage = require('moonstone/Image'),
     Marquee = require('moonstone/Marquee'),
     Popup = require('moonstone/Popup'),
+    Spinner = require('moonstone/Spinner'),
     LunaService = require('enyo-webos/LunaService');
 
 var AppModel = kind({
@@ -43,6 +44,13 @@ module.exports = kind({
     titleBelow: 'Local apps on this TV',
     headerType: 'medium',
     components: [
+        {
+            kind: Spinner, 
+            name: 'loadingSpinner', 
+            content: 'Loading...', 
+            center: true, 
+            showing: truei
+        },
         {
             kind: Popup, 
             name: 'infoPopup', 
@@ -89,11 +97,12 @@ module.exports = kind({
     create: function () {
         this.inherited(arguments);
         this.set('installedApps', new Collection({model: AppModel}));
-        
         this.$.listAppsService.send({});
     },
 
     onListAppsResponse: function (sender, inResponse) {
+        this.$.loadingSpinner.hide();
+
         if (inResponse && inResponse.apps) {
             this.showPopup("Found " + inResponse.apps.length + " raw apps. Processing...");
             
@@ -103,7 +112,7 @@ module.exports = kind({
                 if (app && app.id && !seenIds[app.id]) {
                     seenIds[app.id] = true; 
                     
-                    if (app.icon && app.icon.indexOf('http') !== 0 && app.folderPath) {
+                    if (app.icon && app.icon.indexOf('http') !== 0 && app.icon.indexOf('data:') !== 0 && app.folderPath) {
                         app.icon = app.folderPath + '/' + app.icon;
                     }
                     
@@ -129,6 +138,7 @@ module.exports = kind({
     },
 
     onListAppsError: function(sender, inError) {
+        this.$.loadingSpinner.hide();
         console.error("Failed to list apps:", inError);
         var errorMessage = inError.errorText || "Permission denied or service unavailable.";
         this.showPopup("Failed to load apps: " + errorMessage);
